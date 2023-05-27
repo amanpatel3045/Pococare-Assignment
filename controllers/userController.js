@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 
 const create_token = async (id) => {
   try {
-    const token=await jwt.sign({ _id: id }, config.secret_jwt);
+    const token = await jwt.sign({ _id: id }, config.secret_jwt, {
+      expiresIn: "2h",
+    });
     return token;
   } catch (err) {
     res.status(400).send(err.message);
@@ -85,7 +87,43 @@ const user_login = async (req, res) => {
     res.status(400).send(err.message);
   }
 };
+
+//middleware
+const verifyToken = async (req, res, next) => {
+  const bearerHeader = req.headers["authorization"];
+  if (typeof bearerHeader !== "undefined") {
+    const bearer = bearerHeader.split(" ");
+    const token = bearer[1];
+    req.token = token;
+    next();
+  } else {
+    res.send({
+      message: "Token is not valid",
+    });
+  }
+};
+
+const user_profile = async (req, res) => {
+  try {
+    jwt.verify(req.token, config.secret_jwt, (err, authData) => {
+      if (err) {
+        res.send({ message: "Invalid Token" });
+      } else {
+        res.status(200).send({
+          success: true,
+          message: "profile page accessed",
+          authData,
+        });
+      }
+    });
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+};
+
 module.exports = {
   registerUser,
   user_login,
+  verifyToken,
+  user_profile,
 };
