@@ -1,5 +1,16 @@
 const User = require("../models/userModel");
 const bcryptjs = require("bcryptjs");
+const config = require("../config/config");
+const jwt = require("jsonwebtoken");
+
+const create_token = async (id) => {
+  try {
+    const token=await jwt.sign({ _id: id }, config.secret_jwt);
+    return token;
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+};
 
 // const securePassword = async (req,res) => {
 //   try {
@@ -46,11 +57,13 @@ const user_login = async (req, res) => {
         userData.password
       );
       if (passwordMatch) {
+        const tokenData = await create_token(userData._id);
         const userResult = {
           _id: userData._id,
           name: userData.name,
           email: userData.email,
           password: userData.password,
+          token: tokenData,
         };
         const response = {
           success: true,
