@@ -8,5 +8,7 @@ user_route.post("/register", user_controller.registerUser);
 
 user_route.post("/login",user_controller.user_login)
 
-user_route.post("/profile",verifyTokenRoute.verifyToken,user_controller.user_profile)
+user_route.get("/profile",verifyTokenRoute.verifyToken,user_controller.user_profile)
+
+
 module.exports = user_route;

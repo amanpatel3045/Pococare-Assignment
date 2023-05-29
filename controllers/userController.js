@@ -6,8 +6,9 @@ const jwt = require("jsonwebtoken");
 const create_token = async (id) => {
   try {
     const token = await jwt.sign({ _id: id }, config.secret_jwt, {
-      expiresIn: "2h",
+      expiresIn: "20h",
     });
+
     return token;
   } catch (err) {
     res.status(400).send(err.message);
@@ -60,18 +61,23 @@ const user_login = async (req, res) => {
       );
       if (passwordMatch) {
         const tokenData = await create_token(userData._id);
+        // const refreshToken = await jwt.sign({ _id: id }, config.secret_jwt, {
+        //   expiresIn: "10d",
+        // });
         const userResult = {
           _id: userData._id,
           name: userData.name,
           email: userData.email,
           password: userData.password,
           token: tokenData,
+          // refreshT: refreshToken,
         };
         const response = {
           success: true,
           msg: "User Details",
           data: userResult,
         };
+
         res.status(200).send(response);
       } else {
         res
@@ -90,7 +96,8 @@ const user_login = async (req, res) => {
 
 //middleware
 const verifyToken = async (req, res, next) => {
-  const bearerHeader = req.headers["authorization"];
+  const bearerHeader = req.headers.authorization;
+  console.log(bearerHeader);
   if (typeof bearerHeader !== "undefined") {
     const bearer = bearerHeader.split(" ");
     const token = bearer[1];
@@ -103,11 +110,32 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+// const handle_Refresh_Token = (refreshToken) => {
+//   try{
+//     jwt.verify(refreshToken, config.refresh_jwt, (err, authData) => {
+//       if (err) {
+//         res.send({ message: "Invalid Token" });
+
+//       } else {
+
+//         res.status(200).send({
+//           success: true,
+//           message: "profile page accessed",
+//           authData,
+//         });
+//       }
+//     });
+//   }catch(err){
+//     res.status(400).send(err.message);
+//   }
+// };
+
 const user_profile = async (req, res) => {
   try {
     jwt.verify(req.token, config.secret_jwt, (err, authData) => {
       if (err) {
         res.send({ message: "Invalid Token" });
+        // handle_Refresh_Token(refreshToken);
       } else {
         res.status(200).send({
           success: true,
